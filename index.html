@@ -678,10 +678,12 @@ const observer = new IntersectionObserver((entries) => {
 sections.forEach(section => {
     observer.observe(section);
 });
-            // Attach event listener
-            generateStrategyBtn.addEventListener('click', handleGenerateStrategy);
+            // --- EVENT LISTENERS ---
+            generateStrategyBtn.addEventListener("click", handleGenerateStrategy);
+            marketInsightBtn.addEventListener("click", handleMarketInsight);
 
-            console.log('Script chargé correctement ✅');
+            console.log("✅ Script chargé correctement et prêt à fonctionner !");
+        
         });
         
     </script>
