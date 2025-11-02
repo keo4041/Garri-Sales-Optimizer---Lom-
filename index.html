@@ -678,6 +678,10 @@ const observer = new IntersectionObserver((entries) => {
 sections.forEach(section => {
     observer.observe(section);
 });
+            // Attach event listener
+            generateStrategyBtn.addEventListener('click', handleGenerateStrategy);
+
+            console.log('Script chargé correctement ✅');
         });
         
     </script>
