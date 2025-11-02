@@ -390,10 +390,13 @@
             }
 
             function showLoading(show) {
+                console.log('showLoading starting');
                 if (show) {
+                    console.log('showLoading true', show);
                     loadingOverlay.classList.remove('hidden');
                     loadingOverlay.style.opacity = '1';
                 } else {
+                    console.log('showLoading false', show);
                     loadingOverlay.style.opacity = '0';
                     setTimeout(() => {
                         loadingOverlay.classList.add('hidden');
@@ -403,6 +406,7 @@
 
             async function handleGenerateStrategy() {
                 showLoading(true);
+                console.log('handleGenerateStrategy show true');
                 try {
                 const inventory = parseInt(inventoryInput.value) || 0;
                 const totalCost = parseInt(totalCostDisplay.textContent.replace(/[^0-9]/g, '')) || 0;
