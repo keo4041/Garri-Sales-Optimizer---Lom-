@@ -391,8 +391,8 @@
 
             function showLoading(show) {
                 if (show) {
-                    loadingOverlay.classList.remove('hidden');
-                    loadingOverlay.style.opacity = '1';
+                    loadingOverlay.classList.add('hidden');
+                    loadingOverlay.style.opacity = '0';
                 } else {
                     loadingOverlay.style.opacity = '0';
                     setTimeout(() => {
