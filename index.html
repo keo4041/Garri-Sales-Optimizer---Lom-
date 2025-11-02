@@ -409,7 +409,7 @@
                 console.log('handleGenerateStrategy show true');
                 try {
                 const inventory = parseInt(inventoryInput.value) || 0;
-                const totalCost = parseInt(totalCostDisplay.textContent.replace(/[^0-9]/g, '')) || 0;
+const totalCost = parseInt(totalCostDisplay.textContent.replace(/[^\d]/g, '')) || 0;
 
                 const systemPrompt = "Agissez en tant qu'expert du commerce des matières premières à Lomé, Togo, spécialisé dans les produits agricoles comme le garri. L'entrepôt de l'utilisateur est à Totsi, Lomé.";
                 const userPrompt = `J'ai ${inventory} sacs de garri (50kg chacun) avec un coût total de ${totalCost} CFA. Ma fenêtre de vente est de janvier à mars. Les prix historiques augmentent pendant cette période.
