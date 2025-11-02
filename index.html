@@ -444,9 +444,11 @@ console.log("Calling proxy…", CLOUD_RUN_FUNCTION_URL);
 
                 } catch (error) {
                     console.error('Erreur lors de la génération de la stratégie:', error);
-                    phase1Text.textContent = `Erreur : ${error.message}. Veuillez réessayer.`;
-                    phase2Text.textContent = "";
-                    phase3Text.textContent = "";
+                        alert("Une erreur est survenue lors de la génération de la stratégie. Vérifiez la console.");
+
+                  //  phase1Text.textContent = `Erreur : ${error.message}. Veuillez réessayer.`;
+                    //phase2Text.textContent = "";
+                    //phase3Text.textContent = "";
                 } finally {
                     showLoading(false);
                 }
