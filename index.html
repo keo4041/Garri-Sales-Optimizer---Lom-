@@ -389,10 +389,10 @@
                 }
             }
 
-            function showLoading(show) {
+e            function showLoading(show) {
                 if (show) {
-                    loadingOverlay.classList.add('hidden');
-                    loadingOverlay.style.opacity = '0';
+                    loadingOverlay.classList.remove('hidden');
+                    loadingOverlay.style.opacity = '1';
                 } else {
                     loadingOverlay.style.opacity = '0';
                     setTimeout(() => {
@@ -402,7 +402,7 @@
             }
 
             async function handleGenerateStrategy() {
-                showLoading(false);
+                showLoading(true);
                 const inventory = parseInt(inventoryInput.value) || 0;
                 const totalCost = parseInt(totalCostDisplay.textContent.replace(/[^0-9]/g, '')) || 0;
 
@@ -451,7 +451,7 @@
             }
             
             async function handleGetInsights() {
-                showLoading(false);
+                showLoading(true);
                 marketInsightsWrapper.classList.add('hidden');
                 
                 const systemPrompt = "Agissez en tant qu'analyste de marché pour Lomé, Togo. Fournissez un résumé concis en français, sous forme de puces, des dernières tendances, des facteurs de prix et des perspectives pour le marché du garri à Lomé pour les 3 prochains mois. Concentrez-vous sur les informations pertinentes pour un vendeur en gros.";
