@@ -684,6 +684,10 @@ sections.forEach(section => {
             console.log("✅ Script chargé correctement et prêt à fonctionner !");
         
         });
+        window.addEventListener("error", (e) => {
+  console.error("🔥 Global error:", e.message, e.filename, e.lineno);
+});
+
         
     </script>
 </body>
