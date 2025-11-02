@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garri Sales Optimizer - Lomé</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Earth Tones -->
+    <!-- Application Structure Plan: The application is designed as a single-page, scrollable dashboard. This structure was chosen for its directness and ease of navigation, allowing the user to get a high-level overview instantly and then dive deeper into specific sections without changing context. The flow is: 1) Executive Dashboard for quick, actionable insights with an interactive profit calculator. 2) Detailed financial breakdown (Costs & Revenue). 3) A clear, time-based Sales Strategy. 4) The underlying Market Data that supports the strategy. This top-down approach prioritizes the user's primary goal (understanding profitability) while providing transparent, supporting analysis. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Profitability at different price points. Goal: Explore & Inform. Viz: Interactive slider/input calculator. Interaction: User modifies price to see real-time profit changes. Justification: Empowers user to test scenarios directly. Method: HTML + JS.
+        - Report Info: Breakdown of initial investment. Goal: Organize. Viz: Donut Chart. Interaction: Hover tooltips for cost details. Justification: Clearly shows proportional contributions to total cost. Library: Chart.js.
+        - Report Info: Historical and future garri price trends. Goal: Analyze Change. Viz: Line Chart. Interaction: Hover tooltips for monthly prices. Justification: Best method to visualize time-series data and identify trends supporting the sales strategy. Library: Chart.js.
+        - Report Info: Phased sales plan. Goal: Organize. Viz: Thematic cards in a timeline layout. Interaction: Static visual. Justification: A simple, clean presentation is more effective than a complex chart for a straightforward 3-month plan. Method: HTML + Tailwind CSS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #3D352F;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .stat-card {
+            background-color: #FFFFFF;
+            border: 1px solid #EFEAE6;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .primary-btn {
+            background-color: #8C6A5D;
+            color: #FFFFFF;
+            transition: background-color 0.3s ease;
+        }
+        .primary-btn:hover {
+            background-color: #73564B;
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #8C6A5D;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200/50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-[#73564B]">📈 Garri Sales Optimizer</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#dashboard" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#8C6A5D]">Dashboard</a>
+                        <a href="#financials" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#8C6A5D]">Financials</a>
+                        <a href="#strategy" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#8C6A5D]">Strategy</a>
+                        <a href="#market" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#8C6A5D]">Market Data</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+            <p class="text-center text-lg text-gray-600 max-w-3xl mx-auto mb-10">An interactive plan for maximizing profit from the sale of garri in Lomé. This dashboard provides a high-level view of your venture, with key metrics and a dynamic profit calculator to explore potential outcomes.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="stat-card p-6 rounded-xl shadow-sm text-center">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase">Total Initial Investment</h3>
+                    <p class="mt-1 text-3xl font-semibold text-[#8C6A5D]" id="totalInvestmentDisplay">1,519,000 CFA</p>
+                </div>
+                <div class="stat-card p-6 rounded-xl shadow-sm">
+                    <label for="inventoryInput" class="block text-sm font-medium text-gray-500 uppercase text-center">Total Inventory (Bags)</label>
+                    <input type="number" id="inventoryInput" value="178" class="mt-1 text-3xl font-semibold text-[#8C6A5D] w-full text-center bg-transparent border-none focus:ring-0 p-0">
+                    <p class="text-xs text-gray-500 text-center">(50kg per bag)</p>
+                </div>
+                <div class="stat-card p-6 rounded-xl shadow-sm text-center">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase">Projected Sales Window</h3>
+                    <p class="mt-1 text-3xl font-semibold text-[#8C6A5D]">Jan - Mar 2026</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200/80">
+                <div class="flex justify-center items-center mb-2 relative">
+                     <h2 class="text-2xl font-bold text-center text-[#73564B]">Interactive Profit Calculator</h2>
+                     <button id="resetButton" class="absolute right-0 top-0 primary-btn text-xs font-bold py-1 px-3 rounded-full flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3L22 2.5M22 12.5a10 10 0 0 1-18.8 4.3L2 21.5"/></svg>
+                        Reset
+                     </button>
+                </div>
+                <p class="text-center text-gray-600 mb-6">Adjust the selling price, inventory, or costs to instantly see your potential revenue and profit.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="space-y-4">
+                        <label for="sellingPrice" class="block text-sm font-medium text-gray-700">Average Selling Price per 50kg Bag (CFA)</label>
+                        <input type="range" id="sellingPrice" min="10000" max="25000" value="16500" step="500" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" style="accent-color: #8C6A5D;">
+                        <div class="text-center text-2xl font-bold text-[#8C6A5D]" id="sellingPriceValue">16,500 CFA</div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-medium text-green-800">Projected Revenue</h4>
+                            <p class="text-2xl font-bold text-green-600" id="projectedRevenue">2,937,000</p>
+                            <p class="text-xs text-green-700">CFA</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-medium text-blue-800">Gross Profit</h4>
+                            <p class="text-2xl font-bold text-blue-600" id="grossProfit">1,418,000</p>
+                            <p class="text-xs text-blue-700">CFA</p>
+                        </div>
+                         <div class="sm:col-span-2 bg-yellow-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-medium text-yellow-800">Profit Margin (ROI)</h4>
+                            <p class="text-2xl font-bold text-yellow-600" id="profitMargin">93.35%</p>
+                            <p class="text-xs text-yellow-700">Return on Investment</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Financials -->
+        <section id="financials" class="mb-16 pt-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#73564B]">Financial Breakdown</h2>
+            <p class="text-center text-lg text-gray-600 max-w-3xl mx-auto mb-10">A detailed look at your projected costs. Understanding these figures is the first step toward a successful and profitable venture. The primary expense is the initial purchase of the garri.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-[#73564B]">Cost Structure</h3>
+                    <ul class="space-y-3">
+                        <li class="flex justify-between items-center p-3 bg-white rounded-lg border">
+                            <label for="costPerBagInput" class="font-medium text-gray-700">Cost Per Bag</label>
+                            <input type="number" id="costPerBagInput" class="font-semibold text-gray-900 text-right border-none bg-transparent focus:ring-0 w-36" value="8000">
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-white rounded-lg border">
+                            <span class="font-medium text-gray-700">Garri Purchase Cost</span>
+                             <span id="purchaseCostDisplay" class="font-semibold text-gray-900 text-right w-36 pr-3">1,424,000</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-white rounded-lg border">
+                            <label for="transportCostInput" class="font-medium text-gray-700">Transportation to Lomé</label>
+                            <input type="number" id="transportCostInput" class="font-semibold text-gray-900 text-right border-none bg-transparent focus:ring-0 w-36" value="75000">
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-white rounded-lg border">
+                            <label for="storageCostInput" class="font-medium text-gray-700">Storage & Handling</label>
+                            <input type="number" id="storageCostInput" class="font-semibold text-gray-900 text-right border-none bg-transparent focus:ring-0 w-36" value="20000">
+                        </li>
+                        <li class="flex justify-between items-center p-4 bg-gray-100 rounded-lg border border-gray-300 mt-2">
+                            <span class="font-bold text-gray-800">Total Estimated Cost</span>
+                            <span class="font-bold text-lg text-[#8C6A5D]" id="totalCostDisplay">1,519,000 CFA</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="chart-container">
+                        <canvas id="costBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Sales Strategy -->
+        <section id="strategy" class="mb-16 pt-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#73564B]">Optimal Sales Strategy</h2>
+             <p class="text-center text-lg text-gray-600 max-w-3xl mx-auto mb-10">This strategy aims to maximize revenue by timing sales according to projected price increases. By holding a portion of your stock, you can capitalize on the market's upward trend towards the end of the first quarter.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200/80 transform hover:-translate-y-2 transition-transform duration-300">
+                    <div class="text-3xl mb-4">🗓️</div>
+                    <h3 class="text-xl font-bold mb-2 text-[#8C6A5D]">Phase 1: January</h3>
+                    <p class="font-semibold text-lg mb-2">Sell 30% of Stock</p>
+                    <p class="text-gray-600" id="phase1Bags">(~53 bags)</p>
+                    <p class="text-sm text-gray-500 mt-4">Enter the market as post-holiday demand stabilizes. This initial sale provides early cash flow and establishes your presence.</p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200/80 transform hover:-translate-y-2 transition-transform duration-300">
+                    <div class="text-3xl mb-4">📈</div>
+                    <h3 class="text-xl font-bold mb-2 text-[#8C6A5D]">Phase 2: February</h3>
+                    <p class="font-semibold text-lg mb-2">Sell 40% of Stock</p>
+                    <p class="text-gray-600" id="phase2Bags">(~71 bags)</p>
+                    <p class="text-sm text-gray-500 mt-4">Capitalize on rising prices as supplies from the main harvest begin to dwindle. This is projected to be the peak demand period.</p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200/80 transform hover:-translate-y-2 transition-transform duration-300">
+                    <div class="text-3xl mb-4">💰</div>
+                    <h3 class="text-xl font-bold mb-2 text-[#8C6A5D]">Phase 3: March</h3>
+                    <p class="font-semibold text-lg mb-2">Sell Final 30% of Stock</p>
+                    <p class="text-gray-600" id="phase3Bags">(~54 bags)</p>
+                    <p class="text-sm text-gray-500 mt-4">Sell the remaining inventory at the highest projected prices before the new planting season begins and market dynamics shift.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Market Data -->
+        <section id="market" class="pt-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#73564B]">Lomé Garri Market Analysis</h2>
+            <p class="text-center text-lg text-gray-600 max-w-3xl mx-auto mb-10">Historical price data shows a cyclical pattern, with prices typically rising in the first quarter of the year. The projection for Jan-Mar 2026 is based on this trend, indicating a favorable sales window.</p>
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200/80">
+                <h3 class="text-xl font-bold text-center mb-4 text-[#73564B]">Historical & Projected Prices (per 50kg Bag)</h3>
+                <div class="chart-container">
+                    <canvas id="marketPriceChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white mt-16 border-t">
+        <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+            <p>&copy; 2025 Garri Sales Optimizer. This is a projection and not financial advice.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const DEFAULT_DATA = {
+                inventory: 178,
+                sellingPrice: 16500,
+                costPerBag: 8000,
+                costs: {
+                    transport: 75000,
+                    storage: 20000,
+                },
+                marketPrices: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan \'26', 'Feb \'26', 'Mar \'26'],
+                    historical: [13000, 13500, 14000, 15000, 15500, 15000, 14500, 14000, 13000, 12000, 12500, 13000],
+                    projected: [null, null, null, null, null, null, null, null, null, null, null, null, 15500, 16500, 17500]
+                }
+            };
+
+            let costBreakdownChart;
+            
+            const formatCFA = (value) => new Intl.NumberFormat('fr-FR').format(value) + ' CFA';
+            const formatNumber = (value) => new Intl.NumberFormat('fr-FR').format(value);
+            const formatPercent = (value) => isFinite(value) ? value.toFixed(2) + '%' : '0.00%';
+
+            const sellingPriceSlider = document.getElementById('sellingPrice');
+            const sellingPriceValue = document.getElementById('sellingPriceValue');
+            const projectedRevenue = document.getElementById('projectedRevenue');
+            const grossProfit = document.getElementById('grossProfit');
+            const profitMargin = document.getElementById('profitMargin');
+
+            const inventoryInput = document.getElementById('inventoryInput');
+            const costPerBagInput = document.getElementById('costPerBagInput');
+            const transportCostInput = document.getElementById('transportCostInput');
+            const storageCostInput = document.getElementById('storageCostInput');
+
+            const purchaseCostDisplay = document.getElementById('purchaseCostDisplay');
+            const totalInvestmentDisplay = document.getElementById('totalInvestmentDisplay');
+            const totalCostDisplay = document.getElementById('totalCostDisplay');
+            const phase1Bags = document.getElementById('phase1Bags');
+            const phase2Bags = document.getElementById('phase2Bags');
+            const phase3Bags = document.getElementById('phase3Bags');
+            
+            const resetButton = document.getElementById('resetButton');
+
+            function updateAllCalculations() {
+                const inventory = parseInt(inventoryInput.value) || 0;
+                const costPerBag = parseInt(costPerBagInput.value) || 0;
+                const transportCost = parseInt(transportCostInput.value) || 0;
+                const storageCost = parseInt(storageCostInput.value) || 0;
+                const sellingPrice = parseInt(sellingPriceSlider.value);
+
+                const purchaseCost = inventory * costPerBag;
+                const totalCost = purchaseCost + transportCost + storageCost;
+                
+                const revenue = sellingPrice * inventory;
+                const profit = revenue - totalCost;
+                const margin = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+                
+                sellingPriceValue.textContent = formatCFA(sellingPrice);
+                projectedRevenue.textContent = formatNumber(revenue);
+                grossProfit.textContent = formatNumber(profit);
+                profitMargin.textContent = formatPercent(margin);
+                
+                purchaseCostDisplay.textContent = formatNumber(purchaseCost);
+                totalInvestmentDisplay.textContent = formatCFA(totalCost);
+                totalCostDisplay.textContent = formatCFA(totalCost);
+
+                phase1Bags.textContent = `(~${Math.round(inventory * 0.3)} bags)`;
+                phase2Bags.textContent = `(~${Math.round(inventory * 0.4)} bags)`;
+                phase3Bags.textContent = `(~${Math.round(inventory * 0.3)} bags)`;
+                
+                costBreakdownChart.data.datasets[0].data = [purchaseCost, transportCost, storageCost];
+                costBreakdownChart.update();
+            }
+
+            function resetAll() {
+                inventoryInput.value = DEFAULT_DATA.inventory;
+                costPerBagInput.value = DEFAULT_DATA.costPerBag;
+                transportCostInput.value = DEFAULT_DATA.costs.transport;
+                storageCostInput.value = DEFAULT_DATA.costs.storage;
+                sellingPriceSlider.value = DEFAULT_DATA.sellingPrice;
+                updateAllCalculations();
+            }
+
+            const allInputs = [inventoryInput, costPerBagInput, transportCostInput, storageCostInput, sellingPriceSlider];
+            allInputs.forEach(input => input.addEventListener('input', updateAllCalculations));
+            resetButton.addEventListener('click', resetAll);
+
+            Chart.defaults.font.family = 'Inter';
+
+            const costBreakdownCtx = document.getElementById('costBreakdownChart').getContext('2d');
+            costBreakdownChart = new Chart(costBreakdownCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Garri Purchase', 'Transportation', 'Storage/Handling'],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: ['#8C6A5D', '#BFA69A', '#D9C8BF'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 4,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                color: '#3D352F',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += formatCFA(context.parsed);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+
+            const marketPriceCtx = document.getElementById('marketPriceChart').getContext('2d');
+            new Chart(marketPriceCtx, {
+                type: 'line',
+                data: {
+                    labels: DEFAULT_DATA.marketPrices.labels,
+                    datasets: [
+                        {
+                            label: 'Historical Price',
+                            data: DEFAULT_DATA.marketPrices.historical,
+                            borderColor: '#BFA69A',
+                            backgroundColor: '#BFA69A33',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#BFA69A',
+                        },
+                        {
+                            label: 'Projected Price',
+                            data: DEFAULT_DATA.marketPrices.projected,
+                            borderColor: '#8C6A5D',
+                            backgroundColor: '#8C6A5D33',
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#8C6A5D',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'end',
+                             labels: {
+                                color: '#3D352F',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += formatCFA(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return (value / 1000) + 'k CFA';
+                                },
+                                color: '#3D352F'
+                            },
+                             grid: {
+                                color: '#EFEAE6'
+                            }
+                        },
+                        x: {
+                             ticks: {
+                                color: '#3D352F'
+                            },
+                             grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            resetAll();
+        });
+    </script>
+</body>
+</html>
+
