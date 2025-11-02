@@ -403,6 +403,7 @@
 
             async function handleGenerateStrategy() {
                 showLoading(true);
+                try {
                 const inventory = parseInt(inventoryInput.value) || 0;
                 const totalCost = parseInt(totalCostDisplay.textContent.replace(/[^0-9]/g, '')) || 0;
 
@@ -419,8 +420,9 @@
                 }
                 
                 Les pourcentages doivent totaliser 100. La justification doit être une brève explication en français.`;
+console.log("Calling proxy…", CLOUD_RUN_FUNCTION_URL);
 
-                try {
+                
                     const jsonString = await callCloudRunProxy(userPrompt, systemPrompt, false);
                     const strategy = JSON.parse(jsonString);
                     
@@ -458,6 +460,8 @@
                 const userPrompt = "Quelles sont les dernières nouvelles et tendances des prix pour le garri et le manioc à Lomé, Togo pour début 2026 ? Incluez les facteurs tels que la météo, le transport et la demande saisonnière.";
                 
                 try {
+                    console.log("Calling proxy…", CLOUD_RUN_FUNCTION_URL);
+
                     const textResponse = await callCloudRunProxy(userPrompt, systemPrompt, true);
                     const text = textResponse.replace(/\n/g, '<br>');
                     marketInsights.innerHTML = text;
