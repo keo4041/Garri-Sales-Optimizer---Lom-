@@ -637,22 +637,41 @@
                 threshold: 0.3
             };
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        navLinks.forEach(link => {
-                            link.classList.remove('active');
-                            if (link.getAttribute('href') === `#${entry.target.id}`) {
-                                link.classList.add('active');
-                            }
-                        });
-                    }
-                });
-            }, observerOptions);
+           // This is the fixed code
+const observer = new IntersectionObserver((entries) => {
+    // First, remove the 'active' class from ALL nav links
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+    });
 
-            sections.forEach(section => {
-                observer.observe(section);
-            });
+    // Find the first entry that is currently intersecting
+    const activeEntry = entries.find(entry => entry.isIntersecting);
+
+    if (activeEntry) {
+        // Find the matching link and add the 'active' class to it
+        const activeLink = document.querySelector(`.nav-link[href="#${activeEntry.target.id}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+    } else if (entries.length > 0) {
+        // Optional: If nothing is intersecting (e.g., user is between sections),
+        // default to the first link that passed the threshold.
+        // This makes the highlighting feel "stickier".
+        const firstEntry = entries[0];
+        const firstLink = document.querySelector(`.nav-link[href="#${firstEntry.target.id}"]`);
+        if (firstLink) {
+             // This logic might need refinement based on scroll direction,
+             // but for now, we'll just re-activate the 'default' one.
+             // A simple solution is to just highlight the first link in the nav.
+             navLinks[0].classList.add('active');
+        }
+    }
+
+}, observerOptions);
+
+sections.forEach(section => {
+    observer.observe(section);
+});
         });
     </script>
 </body>
