@@ -3,225 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stratégie de Vente IA</title>
+  <title>Analyse Financière</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background: #f7f8fa;
-      color: #222;
-      padding: 20px;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f8f9fa;
     }
-
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
     h1 {
       text-align: center;
-      color: #444;
+      color: #333;
     }
-
-    button {
-      background: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
     }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .phase {
-      background: white;
-      padding: 15px;
+    canvas {
+      background: #fff;
       border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-top: 15px;
-    }
-
-    .chart-container {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-top: 25px;
+      padding: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Stratégie de Vente IA</h1>
+    <h1>Analyse Financière</h1>
 
     <div>
-      <label for="inventoryInput">Nombre de sacs :</label>
-      <input id="inventoryInput" type="number" placeholder="Ex: 500" />
+      <p><strong>Total des coûts :</strong> <span id="totalCost">1 519 000 CFA</span></p>
+      <p><strong>Prix du marché :</strong> <span id="marketPrice">2 300 000 CFA</span></p>
     </div>
 
-    <div style="margin-top:10px;">
-      <span>Coût total estimé : </span>
-      <strong id="totalCostDisplay">0 CFA</strong>
-    </div>
-
-    <div style="margin-top:10px;">
-      <button id="generateStrategyBtn">Générer une Stratégie IA</button>
-      <button id="marketInsightBtn" style="background:#28a745;">Analyse du Marché</button>
-    </div>
-
-    <div id="resultsSection">
-      <div class="phase">
-        <h3 id="phase1Title">Phase 1</h3>
-        <p id="phase1Bags"></p>
-        <p id="phase1Text"></p>
-      </div>
-
-      <div class="phase">
-        <h3 id="phase2Title">Phase 2</h3>
-        <p id="phase2Bags"></p>
-        <p id="phase2Text"></p>
-      </div>
-
-      <div class="phase">
-        <h3 id="phase3Title">Phase 3</h3>
-        <p id="phase3Bags"></p>
-        <p id="phase3Text"></p>
-      </div>
-    </div>
-
-    <div class="chart-container">
-      <canvas id="strategyChart" height="100"></canvas>
+    <div class="charts">
+      <canvas id="costBreakdownChart"></canvas>
+      <canvas id="marketPriceChart"></canvas>
     </div>
   </div>
 
   <script>
+    // ✅ Run after the page is ready
     document.addEventListener("DOMContentLoaded", () => {
-      console.log("✅ Script chargé correctement et prêt à fonctionner !");
+      console.log("✅ Script chargé correctement");
 
-      const CLOUD_RUN_FUNCTION_URL = "https://github-pages-gemini-proxy-238410973313.us-central1.run.app";
+      const totalCostDisplay = document.getElementById("totalCost");
+      const marketPriceDisplay = document.getElementById("marketPrice");
+      const costBreakdownCtx = document.getElementById("costBreakdownChart").getContext("2d");
+      const marketPriceCtx = document.getElementById("marketPriceChart").getContext("2d");
 
-      // Elements
-      const inventoryInput = document.getElementById("inventoryInput");
-      const totalCostDisplay = document.getElementById("totalCostDisplay");
-      const generateStrategyBtn = document.getElementById("generateStrategyBtn");
-      const marketInsightBtn = document.getElementById("marketInsightBtn");
+      // Helper to parse numbers even with non-breaking spaces
+      const parseNumber = (text) => parseInt(text.replace(/[^\d]/g, "")) || 0;
 
-      const phase1Bags = document.getElementById("phase1Bags");
-      const phase2Bags = document.getElementById("phase2Bags");
-      const phase3Bags = document.getElementById("phase3Bags");
-      const phase1Text = document.getElementById("phase1Text");
-      const phase2Text = document.getElementById("phase2Text");
-      const phase3Text = document.getElementById("phase3Text");
+      const totalCost = parseNumber(totalCostDisplay.textContent);
+      const marketPrice = parseNumber(marketPriceDisplay.textContent);
 
-      // Update cost dynamically
-      inventoryInput.addEventListener("input", () => {
-        const qty = parseInt(inventoryInput.value) || 0;
-        const costPerBag = 3500;
-        totalCostDisplay.textContent = `${(qty * costPerBag).toLocaleString()} CFA`;
-      });
-
-      // Helper to call Cloud Run
-      async function callCloudRunProxy(userPrompt, systemPrompt, grounded) {
-        console.log("📡 Calling Cloud Run proxy…");
-        const response = await fetch(CLOUD_RUN_FUNCTION_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prompt: userPrompt,
-            systemInstruction: systemPrompt,
-            grounded: grounded
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erreur réseau (${response.status})`);
-        }
-        const result = await response.json();
-        return result.response;
-      }
-
-      // --- MAIN FUNCTION ---
-      async function handleGenerateStrategy() {
-        try {
-          const inventory = parseInt(inventoryInput.value) || 0;
-          const totalCost = parseInt(totalCostDisplay.textContent.replace(/[^\d]/g, '')) || 0;
-
-          const systemPrompt = "Agissez en tant qu'expert du commerce des matières premières à Lomé, Togo.";
-          const userPrompt = `J'ai ${inventory} sacs de garri pour un coût total de ${totalCost} CFA. Génère une stratégie JSON avec trois phases de vente, chaque phase ayant un pourcentage et une justification.`;
-
-          const jsonString = await callCloudRunProxy(userPrompt, systemPrompt, false);
-          console.log("📩 Réponse brute du proxy:", jsonString);
-
-          const strategy = JSON.parse(jsonString);
-          console.log("✅ Stratégie parsée :", strategy);
-
-          const p1Bags = Math.round(inventory * (strategy.phase1.percent / 100));
-          const p2Bags = Math.round(inventory * (strategy.phase2.percent / 100));
-          const p3Bags = Math.round(inventory * (strategy.phase3.percent / 100));
-
-          phase1Bags.textContent = `(~${p1Bags} sacs)`;
-          phase2Bags.textContent = `(~${p2Bags} sacs)`;
-          phase3Bags.textContent = `(~${p3Bags} sacs)`;
-
-          phase1Text.textContent = strategy.phase1.rationale;
-          phase2Text.textContent = strategy.phase2.rationale;
-          phase3Text.textContent = strategy.phase3.rationale;
-
-          renderChart(strategy);
-        } catch (error) {
-          console.error("❌ Erreur:", error);
-          alert("Erreur : " + error.message);
-        }
-      }
-
-      // --- MARKET INSIGHT ---
-      async function handleMarketInsight() {
-        try {
-          const systemPrompt = "Agissez en tant qu'expert en marché des vivriers au Togo.";
-          const userPrompt = "Donnez un aperçu du marché du garri au Togo pour les 3 prochains mois.";
-
-          const insight = await callCloudRunProxy(userPrompt, systemPrompt, true);
-          console.log("📊 Analyse du marché:", insight);
-          alert(insight);
-        } catch (error) {
-          console.error("❌ Erreur analyse marché:", error);
-          alert("Erreur : " + error.message);
-        }
-      }
-
-      // --- CHART ---
-      function renderChart(strategy) {
-        const ctx = document.getElementById("strategyChart").getContext("2d");
-        new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: ["Phase 1", "Phase 2", "Phase 3"],
-            datasets: [{
-              label: "Pourcentage du stock vendu",
-              data: [
-                strategy.phase1.percent,
-                strategy.phase2.percent,
-                strategy.phase3.percent
-              ],
-              backgroundColor: ["#007bff", "#ffc107", "#28a745"],
-              borderWidth: 1
-            }]
-          },
-          options: {
-            scales: {
-              y: { beginAtZero: true }
+      // ✅ Chart 1: Breakdown
+      const costBreakdownChart = new Chart(costBreakdownCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["Main d'œuvre", "Intrants", "Transport", "Autres"],
+          datasets: [{
+            data: [500000, 300000, 400000, 319000],
+          }]
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: "Répartition des coûts",
             }
           }
-        });
-      }
+        }
+      });
 
-      // --- EVENT LISTENERS ---
-      generateStrategyBtn.addEventListener("click", handleGenerateStrategy);
-      marketInsightBtn.addEventListener("click", handleMarketInsight);
+      // ✅ Chart 2: Market Price vs Cost
+      const marketPriceChart = new Chart(marketPriceCtx, {
+        type: "bar",
+        data: {
+          labels: ["Total des coûts", "Prix du marché"],
+          datasets: [{
+            label: "Montant (CFA)",
+            data: [totalCost, marketPrice],
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true }
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: "Coût vs Prix du marché"
+            }
+          }
+        }
+      });
+    });
+
+    // ✅ Global error catcher
+    window.addEventListener("error", (e) => {
+      console.error("🔥 Global error:", e.message, e.filename, e.lineno);
     });
   </script>
 </body>
